@@ -5,6 +5,7 @@ import pickle
 import os
 from datetime import date, timedelta
 from collections import defaultdict
+from Score_Calculation import scores
 # -----------------------------------------
 from NER_Tools import entity_detection, entity_cleaning
 
@@ -52,24 +53,23 @@ def detect_relate_graph_entities(today, current_week):
     save_entity_dict_list.close()
 
 
-    # # There is a danger using this:
-    # # If we try to use (print) a key that does not exist in the
-    # # dictionary there will be no Key Error exception but
-    # # the key will be created with an empty value
-    # article_rel_weights = create_nested_dict()
-    # # getting all the article of the day
+    # There is a danger using this:
+    # If we try to use (print) a key that does not exist in the
+    # dictionary there will be no Key Error exception but
+    # the key will be created with an empty value
+    article_rel_weights = create_nested_dict()
+    # getting all the article of the day
+    # TODO delete it when it is not needed anymore
     # current_day_articles = db[current_week].find({"date": today}, no_cursor_timeout=True)
-    # # Old Version --------------------------------------------------------------
-    # # Initializing the entityNestedDict with
-    # # entities that are in the same article
-    # for ent_dict in article_entity_dict_list:
-    #     article_rel_weights = entityScore.article_level_score(article_rel_weights,
-    #                                                           ent_dict, "PERSON", ":PER:")
-    #     article_rel_weights = entityScore.article_level_score(article_rel_weights,
-    #                                                           ent_dict, "LOCATION", ":LOC:")
-    #     article_rel_weights = entityScore.article_level_score(article_rel_weights,
-    #                                                           ent_dict, "ORGANIZATION", ":ORG:")
-    #
+    # Old Version --------------------------------------------------------------
+    # Initializing the entityNestedDict with
+    # entities that are in the same article
+    for ent_list in article_entity_list:
+        article_rel_weights = scores.article_level_score(article_rel_weights, ent_list, "PERSON")
+        article_rel_weights = scores.article_level_score(article_rel_weights, ent_list, "LOCATION")
+        article_rel_weights = scores.article_level_score(article_rel_weights, ent_list, "ORGANIZATION")
+
+
     # # ----------------------------------------------------------
     # # New way for calculating article level weights
     # # for document, entity_list_doc in zip(current_day_articles, article_entity_dict_list):
