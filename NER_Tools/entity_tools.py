@@ -1,3 +1,4 @@
+import copy
 import pickle
 from NER_Tools import entity_cleaning
 
@@ -22,7 +23,11 @@ def transform_article_dict(doc, ent_dict):
 # Theresa May and Theresa May we will later use the set
 # container to erase duplicates per sentence.
 def replace_entities_in_sentence(doc_sents, ent_list_doc):
-    entities_in_sentence = set()
+    entities_in_sentence = dict()
+    entities_in_sentence["PERSON"] = set()
+    entities_in_sentence["LOCATION"] = set()
+    entities_in_sentence["ORGANIZATION"] = set()
+
     new_sents = []
     set_list = []
     entity_time_list = []
@@ -33,19 +38,19 @@ def replace_entities_in_sentence(doc_sents, ent_list_doc):
         correct_entities_org = replace_lo(ent_list_doc["ORGANIZATION"], single_sentence)
 
         for person in correct_entities_per:
-            entities_in_sentence.add(":PER:" + person)
+            entities_in_sentence["PERSON"].add(person)
         for location in correct_entities_loc:
-            entities_in_sentence.add(":LOC:" + location)
+            entities_in_sentence["LOCATION"].add(location)
         for organization in correct_entities_org:
-            entities_in_sentence.add(":ORG:" + organization)
+            entities_in_sentence["ORGANIZATION"].add(organization)
 
-        new_sents.append(set(entities_in_sentence))
-        entities_in_sentence.clear()
+        # We need to deep copy the dictionary because the sets will be cleared.
+        new_sents.append(copy.deepcopy(entities_in_sentence))
+        entities_in_sentence["PERSON"].clear()
+        entities_in_sentence["LOCATION"].clear()
+        entities_in_sentence["ORGANIZATION"].clear()
 
-    for sent in new_sents:
-        set_list.append(set(sent))
-
-    return set_list
+    return new_sents
 
 
 def replace_per(ent_list, sentence, time_list):
@@ -63,7 +68,6 @@ def replace_per(ent_list, sentence, time_list):
             striped_word = wrd.strip('\' ,.“[]()”—’:;?')
             for entSp in ent.split(" "):
                 if striped_word == entSp:
-                    print("i")
                     if striped_word in temp_sent_ent:
                         temp_sent_ent[striped_word].append(ent.strip())
                     else:

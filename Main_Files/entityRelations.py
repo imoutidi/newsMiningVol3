@@ -27,7 +27,7 @@ def detect_relate_graph_entities(today, current_week):
     # for each key is a list with all the detected
     # entities. (It is uncommented to be easier seen
     # below it is being reinitialized.
-    article_entity_dict_list = []
+    article_entity_list = []
 
     # We will get the entities for the stored articles
     # This for loop will take a lot of time and the cursor
@@ -36,15 +36,19 @@ def detect_relate_graph_entities(today, current_week):
     for document in db[current_week].find({"date": today}, no_cursor_timeout=True):
 
         entity_dict = entity_detection.detection(document["text"])
-        article_entity_dict_list.append(entity_dict)
+        article_entity_list.append(entity_dict)
+        # break
+
+    # Cleaning all entities.
+    article_entity_list = entity_cleaning.clean(article_entity_list)
 
     if not os.path.exists(project_path + "Pivot_Files/Article_Entity_Structure/" + current_week):
         os.makedirs(project_path + "Pivot_Files/Article_Entity_Structure" + current_week)
 
-    # entity dict list must be saved for future usage (NER clasifier takes time)
+    # entity dict list must be saved for future usage (NER classifier takes time)
     save_entity_dict_list = open(project_path + "Pivot_File/Article_Entity_Structure/" + current_week + "/"
                                  + today + "_DictArticlesList.pickle", "wb")
-    pickle.dump(article_entity_dict_list, save_entity_dict_list)
+    pickle.dump(article_entity_list, save_entity_dict_list)
     save_entity_dict_list.close()
 
 

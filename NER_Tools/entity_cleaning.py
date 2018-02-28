@@ -3,6 +3,12 @@ from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 
 
+def write_on_file(stuf):
+    with open("/home/iraklis/Desktop/classified_text.txt", "w") as out_file:
+        for tup in stuf:
+            out_file.write(str(tup) + "\n")
+
+
 # Person entities that consist of only one word
 # are being deleted to reduce ambiguity
 def remove_single_named_persons(name_list):
@@ -50,7 +56,7 @@ def person_cleaning(ent_list, clean_persons):
     return ent_list
 
 
-def clean(article_dict):
+def clean(article_list):
     project_path = "/home/iraklis/PycharmProjects/newsMiningVol3/"
     load_clean_persons = open(project_path + "Pivot_Files/Clean_Entity_Dictionaries/clean_persons_dict.pickle", "rb")
     clean_persons_dict = pickle.load(load_clean_persons)
@@ -64,8 +70,12 @@ def clean(article_dict):
     clean_orgs = pickle.load(load_clean_orgs)
     load_clean_orgs.close()
 
-    article_dict["PERSON"] = person_cleaning(article_dict["PERSON"], clean_persons_dict)
-    article_dict["LOCATION"] = second_phase_name_cleaning(article_dict["LOCATION"], clean_locs)
-    article_dict["ORGANIZATION"] = second_phase_name_cleaning(article_dict["ORGANIZATION"], clean_orgs)
+    write_on_file(clean_orgs)
 
-    return article_dict
+    for sent_list in article_list:
+        for sentence_entities in sent_list:
+            sentence_entities["PERSON"] = person_cleaning(sentence_entities["PERSON"], clean_persons_dict)
+            sentence_entities["LOCATION"] = second_phase_name_cleaning(sentence_entities["LOCATION"], clean_locs)
+            sentence_entities["ORGANIZATION"] = second_phase_name_cleaning(sentence_entities["ORGANIZATION"], clean_orgs)
+
+    return article_list
