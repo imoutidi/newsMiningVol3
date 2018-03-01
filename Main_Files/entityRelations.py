@@ -28,7 +28,8 @@ def detect_relate_graph_entities(today, current_week):
     # for each key is a list with all the detected
     # entities. (It is uncommented to be easier seen
     # below it is being reinitialized.
-    article_entity_list = []
+    article_entity_list = list()
+    article_id_list = list()
 
     # We will get the entities for the stored articles
     # This for loop will take a lot of time and the cursor
@@ -38,16 +39,17 @@ def detect_relate_graph_entities(today, current_week):
 
         entity_dict = entity_detection.detection(document["text"])
         article_entity_list.append(entity_dict)
-        # break
+        article_id_list.append(document["_id"])
+        break
 
     # Cleaning all entities.
     article_entity_list = entity_cleaning.clean(article_entity_list)
 
     if not os.path.exists(project_path + "Pivot_Files/Article_Entity_Structure/" + current_week):
-        os.makedirs(project_path + "Pivot_Files/Article_Entity_Structure" + current_week)
+        os.makedirs(project_path + "Pivot_Files/Article_Entity_Structure/" + current_week)
 
     # entity dict list must be saved for future usage (NER classifier takes time)
-    save_entity_dict_list = open(project_path + "Pivot_File/Article_Entity_Structure/" + current_week + "/"
+    save_entity_dict_list = open(project_path + "Pivot_Files/Article_Entity_Structure/" + current_week + "/"
                                  + today + "_DictArticlesList.pickle", "wb")
     pickle.dump(article_entity_list, save_entity_dict_list)
     save_entity_dict_list.close()
@@ -64,10 +66,8 @@ def detect_relate_graph_entities(today, current_week):
     # Old Version --------------------------------------------------------------
     # Initializing the entityNestedDict with
     # entities that are in the same article
-    for ent_list in article_entity_list:
-        article_rel_weights = scores.article_level_score(article_rel_weights, ent_list, "PERSON")
-        article_rel_weights = scores.article_level_score(article_rel_weights, ent_list, "LOCATION")
-        article_rel_weights = scores.article_level_score(article_rel_weights, ent_list, "ORGANIZATION")
+    for ent_list, article_id in zip(article_entity_list, article_id_list):
+        article_rel_weights = scores.article_level_score(article_rel_weights, ent_list, article_id)
 
 
     # # ----------------------------------------------------------
