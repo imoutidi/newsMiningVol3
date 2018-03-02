@@ -54,20 +54,18 @@ def detect_relate_graph_entities(today, current_week):
     pickle.dump(article_entity_list, save_entity_dict_list)
     save_entity_dict_list.close()
 
-
+    relation_types = ["PLO", "PL", "PO", "LO", "P", "L", "O"]
     # There is a danger using this:
     # If we try to use (print) a key that does not exist in the
     # dictionary there will be no Key Error exception but
     # the key will be created with an empty value
     article_rel_weights = create_nested_dict()
-    # getting all the article of the day
-    # TODO delete it when it is not needed anymore
-    # current_day_articles = db[current_week].find({"date": today}, no_cursor_timeout=True)
-    # Old Version --------------------------------------------------------------
     # Initializing the entityNestedDict with
     # entities that are in the same article
-    for ent_list, article_id in zip(article_entity_list, article_id_list):
-        article_rel_weights = scores.article_level_score(article_rel_weights, ent_list, article_id)
+    for rel_type in relation_types:
+        for ent_list in article_entity_list:
+            article_rel_weights = scores.article_level_score(article_rel_weights, ent_list, rel_type)
+
 
 
     # # ----------------------------------------------------------

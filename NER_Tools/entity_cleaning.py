@@ -74,8 +74,8 @@ def clean(article_list):
 
     for sent_list in article_list:
         for sentence_entities in sent_list:
-            sentence_entities["PERSON"] = person_cleaning(sentence_entities["PERSON"], clean_persons_dict)
-            sentence_entities["LOCATION"] = second_phase_name_cleaning(sentence_entities["LOCATION"], clean_locs)
-            sentence_entities["ORGANIZATION"] = second_phase_name_cleaning(sentence_entities["ORGANIZATION"], clean_orgs)
+            sentence_entities["P"] = person_cleaning(sentence_entities["P"], clean_persons_dict)
+            sentence_entities["L"] = second_phase_name_cleaning(sentence_entities["L"], clean_locs)
+            sentence_entities["O"] = second_phase_name_cleaning(sentence_entities["O"], clean_orgs)
 
     return article_list

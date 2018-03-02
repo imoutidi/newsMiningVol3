@@ -11,7 +11,7 @@ def transform_article_dict(doc, ent_dict):
     load_classifier.close()
 
     sentences = p_sent_tokenizer.sentences_from_text(doc)
-    ent_dict["PERSON"] = entity_cleaning.remove_single_named_persons(ent_dict["PERSON"])
+    ent_dict["P"] = entity_cleaning.remove_single_named_persons(ent_dict["P"])
     list_of_sets = replace_entities_in_sentence(sentences, ent_dict)
 
     return list_of_sets
@@ -24,31 +24,31 @@ def transform_article_dict(doc, ent_dict):
 # container to erase duplicates per sentence.
 def replace_entities_in_sentence(doc_sents, ent_list_doc):
     entities_in_sentence = dict()
-    entities_in_sentence["PERSON"] = set()
-    entities_in_sentence["LOCATION"] = set()
-    entities_in_sentence["ORGANIZATION"] = set()
+    entities_in_sentence["P"] = set()
+    entities_in_sentence["L"] = set()
+    entities_in_sentence["O"] = set()
 
     new_sents = []
     set_list = []
     entity_time_list = []
     for single_sentence in doc_sents:
-        correct_entities_per = replace_per(ent_list_doc["PERSON"], single_sentence,
+        correct_entities_per = replace_per(ent_list_doc["P"], single_sentence,
                                            entity_time_list)
-        correct_entities_loc = replace_lo(ent_list_doc["LOCATION"], single_sentence)
-        correct_entities_org = replace_lo(ent_list_doc["ORGANIZATION"], single_sentence)
+        correct_entities_loc = replace_lo(ent_list_doc["L"], single_sentence)
+        correct_entities_org = replace_lo(ent_list_doc["O"], single_sentence)
 
         for person in correct_entities_per:
-            entities_in_sentence["PERSON"].add(person)
+            entities_in_sentence["P"].add(person)
         for location in correct_entities_loc:
-            entities_in_sentence["LOCATION"].add(location)
+            entities_in_sentence["L"].add(location)
         for organization in correct_entities_org:
-            entities_in_sentence["ORGANIZATION"].add(organization)
+            entities_in_sentence["O"].add(organization)
 
         # We need to deep copy the dictionary because the sets will be cleared.
         new_sents.append(copy.deepcopy(entities_in_sentence))
-        entities_in_sentence["PERSON"].clear()
-        entities_in_sentence["LOCATION"].clear()
-        entities_in_sentence["ORGANIZATION"].clear()
+        entities_in_sentence["P"].clear()
+        entities_in_sentence["L"].clear()
+        entities_in_sentence["O"].clear()
 
     return new_sents
 

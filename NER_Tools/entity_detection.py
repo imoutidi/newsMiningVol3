@@ -65,9 +65,9 @@ def detection(document):
         entity_str += previous_tuple[0]
 
     store_entities = dict()
-    store_entities["PERSON"] = []
-    store_entities["LOCATION"] = []
-    store_entities["ORGANIZATION"] = []
+    store_entities["P"] = []
+    store_entities["L"] = []
+    store_entities["O"] = []
 
     for txt in classified_text[1:-1]:
         if txt[1] != 'O':
@@ -78,18 +78,18 @@ def detection(document):
         else:
             if entity_str != "":
                 # store_entities[previous_tuple[1]].add(entity_str)
-                store_entities[previous_tuple[1]].append(entity_str)
+                store_entities[previous_tuple[1][0]].append(entity_str)
                 entity_str = ""
 
         previous_tuple = txt
 
     # We are using OrderedDict to delete duplicates and preserve the insertion order
-    store_entities["PERSON"] = remove_entities(
-        list(OrderedDict((x, True) for x in store_entities["PERSON"]).keys()))
-    store_entities["LOCATION"] = remove_entities(
-        list(OrderedDict((x, True) for x in store_entities["LOCATION"]).keys()))
-    store_entities["ORGANIZATION"] = remove_entities(
-        list(OrderedDict((x, True) for x in store_entities["ORGANIZATION"]).keys()))
+    store_entities["P"] = remove_entities(
+        list(OrderedDict((x, True) for x in store_entities["P"]).keys()))
+    store_entities["L"] = remove_entities(
+        list(OrderedDict((x, True) for x in store_entities["L"]).keys()))
+    store_entities["O"] = remove_entities(
+        list(OrderedDict((x, True) for x in store_entities["O"]).keys()))
 
     # We transform the article_entity_dict_list in order to contain the entities of
     # each article sentence. The article entities will be calculated when it is needed.
