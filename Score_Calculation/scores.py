@@ -1,45 +1,50 @@
 
 
-# Creating a nested dictionary with depth 2 which will
-# contain the relation score between two entities that
-# are detected in the parsed articles.
-def article_level_score(entity_nested_dict, entity_list, r_type):
-
+def article_level_score(all_articles_rel_weights, entity_list, r_type, art_id):
     frequencies = entity_article_frequency(entity_list)
-    relations_weights = calculate_relations_weights(frequencies, r_type)
+    single_article_rel_weights = calculate_relations_weights(frequencies, r_type)
+    for entity_couple in single_article_rel_weights:
+        if entity_couple in all_articles_rel_weights:
+            all_articles_rel_weights[entity_couple][0] += single_article_rel_weights[entity_couple]
+            all_articles_rel_weights[entity_couple][1].append(art_id)
+        else:
+            all_articles_rel_weights[entity_couple] = [single_article_rel_weights[entity_couple], [art_id]]
 
-    return entity_nested_dict
+    return all_articles_rel_weights
 
 
 def calculate_relations_weights(freqs, rel_type):
     frequency_sum = calculate_frequency_sum(freqs, rel_type)
+    weight_dict = dict()
+    weight_list = list()
+    name_list = list()
+    value_list = list()
+    for r_t in rel_type:
+        name_list += freqs[r_t]
+        value_list += freqs[r_t].values()
+        # we sort the values accordingly the sorted name list and return two sorted tuples
+        sorted_names, sorted_values = zip(*[(name, value) for name, value in sorted(zip(name_list, value_list))])
+        sorted_names = list(sorted_names)
+        sorted_values = list(sorted_values)
 
+    for idx, out_value in enumerate(sorted_values[:-1]):
+        weight_list.append(list())
+        for in_value in sorted_values[idx+1:]:
+            weight_list[idx].append((out_value + in_value) / frequency_sum)
 
-    return 0
+    for out_idx, out_name in enumerate(sorted_names[:-1]):
+            for in_idx, in_name in enumerate(sorted_names[out_idx+1:]):
+                weight_dict[out_name + "-" + in_name] = weight_list[out_idx][in_idx]
+
+    return weight_dict
 
 
 def calculate_frequency_sum(freqs, r_type):
-    values = []
+    values = list()
     for r_t in r_type:
-        values += list(freqs["P"].values())
-        values += list(freqs["L"].values())
-        values += list(freqs["O"].values())
+        values += list(freqs[r_t].values())
 
     return sum(values)
-
-
-# This will probably be deleted
-def calculate_product_sum(freqs):
-    values = list(freqs["P"].values())
-    values += list(freqs["L"].values())
-    values += list(freqs["O"].values())
-
-    temp_product = 0
-    for idx, out_val in enumerate(values):
-        for in_val in values[idx+1:]:
-            temp_product += out_val * in_val
-
-    return temp_product
 
 
 def entity_article_frequency(ent_list):

@@ -77,7 +77,6 @@ def detection(document):
                 entity_str = txt[0]
         else:
             if entity_str != "":
-                # store_entities[previous_tuple[1]].add(entity_str)
                 store_entities[previous_tuple[1][0]].append(entity_str)
                 entity_str = ""
 

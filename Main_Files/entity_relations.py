@@ -8,6 +8,7 @@ from collections import defaultdict
 from Score_Calculation import scores
 # -----------------------------------------
 from NER_Tools import entity_detection, entity_cleaning
+from Main_Files import graph_creation
 
 
 # Better than lambda
@@ -28,22 +29,25 @@ def detect_relate_graph_entities(today, current_week):
     # for each key is a list with all the detected
     # entities. (It is uncommented to be easier seen
     # below it is being reinitialized.
-    article_entity_list = list()
-    article_id_list = list()
+    articles_entity_list = list()
+    articles_id_list = list()
 
     # We will get the entities for the stored articles
     # This for loop will take a lot of time and the cursor
     # is going to timeout. So we deactivate this functionality.
     # Old version ------------------------------------------------------------
+    count = 0
     for document in db[current_week].find({"date": today}, no_cursor_timeout=True):
 
         entity_dict = entity_detection.detection(document["text"])
-        article_entity_list.append(entity_dict)
-        article_id_list.append(document["_id"])
-        break
+        articles_entity_list.append(entity_dict)
+        articles_id_list.append(document["_id"])
+        if count == 0:
+            break
+        count += 1
 
     # Cleaning all entities.
-    article_entity_list = entity_cleaning.clean(article_entity_list)
+    articles_entity_list = entity_cleaning.clean(articles_entity_list)
 
     if not os.path.exists(project_path + "Pivot_Files/Article_Entity_Structure/" + current_week):
         os.makedirs(project_path + "Pivot_Files/Article_Entity_Structure/" + current_week)
@@ -51,34 +55,22 @@ def detect_relate_graph_entities(today, current_week):
     # entity dict list must be saved for future usage (NER classifier takes time)
     save_entity_dict_list = open(project_path + "Pivot_Files/Article_Entity_Structure/" + current_week + "/"
                                  + today + "_DictArticlesList.pickle", "wb")
-    pickle.dump(article_entity_list, save_entity_dict_list)
+    pickle.dump(articles_entity_list, save_entity_dict_list)
     save_entity_dict_list.close()
 
     relation_types = ["PLO", "PL", "PO", "LO", "P", "L", "O"]
-    # There is a danger using this:
-    # If we try to use (print) a key that does not exist in the
-    # dictionary there will be no Key Error exception but
-    # the key will be created with an empty value
-    article_rel_weights = create_nested_dict()
-    # Initializing the entityNestedDict with
-    # entities that are in the same article
+
+    # Creating article level graphs
     for rel_type in relation_types:
-        for ent_list in article_entity_list:
-            article_rel_weights = scores.article_level_score(article_rel_weights, ent_list, rel_type)
+        articles_rel_weights = dict()
+        # Calculating the weight for all entities for all articles
+        for ent_list, article_id in zip(articles_entity_list, articles_id_list):
+            articles_rel_weights = scores.article_level_score(articles_rel_weights, ent_list, rel_type, article_id)
+        # Creating gephi CSV files
+        graph_creation.create_article_graph(articles_rel_weights, project_path, today, current_week)
 
 
 
-    # # ----------------------------------------------------------
-    # # New way for calculating article level weights
-    # # for document, entity_list_doc in zip(current_day_articles, article_entity_dict_list):
-    # #     sentences = p_sent_tokenizer.sentences_from_text(document["text"])
-    # #     article_rel_weights = entityScore.article_frequency_score(article_rel_weights, sentences,
-    # #                                                               "PERSON", ":PER:", entity_list_doc, document["_id"])
-    # #     article_rel_weights = entityScore.article_frequency_score(article_rel_weights, sentences,
-    # #                                                               "LOCATION", ":LOC:", entity_list_doc, document["_id"])
-    # #     article_rel_weights = entityScore.article_frequency_score(article_rel_weights, sentences,
-    # #                                                               "ORGANIZATION", ":ORG:", entity_list_doc, document["_id"])
-    #
     # # In this dictionary we will keep the score regarding
     # # the occurrences of two entities in a sentence and also
     # # the document ID and the index number of the sentence that
