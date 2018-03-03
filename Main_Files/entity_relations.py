@@ -42,9 +42,9 @@ def detect_relate_graph_entities(today, current_week):
         entity_dict = entity_detection.detection(document["text"])
         articles_entity_list.append(entity_dict)
         articles_id_list.append(document["_id"])
-        if count == 0:
-            break
-        count += 1
+        # if count == 10:
+        #     break
+        # count += 1
 
     # Cleaning all entities.
     articles_entity_list = entity_cleaning.clean(articles_entity_list)
@@ -63,11 +63,17 @@ def detect_relate_graph_entities(today, current_week):
     # Creating article level graphs
     for rel_type in relation_types:
         articles_rel_weights = dict()
+
+        entry_ids = graph_creation.assign_ids(articles_entity_list, rel_type)
+
         # Calculating the weight for all entities for all articles
         for ent_list, article_id in zip(articles_entity_list, articles_id_list):
             articles_rel_weights = scores.article_level_score(articles_rel_weights, ent_list, rel_type, article_id)
         # Creating gephi CSV files
-        graph_creation.create_article_graph(articles_rel_weights, project_path, today, current_week)
+        graph_creation.create_article_graph(articles_rel_weights, entry_ids, rel_type,
+                                            project_path, today, current_week)
+
+    # Creating sentence level graphs
 
 
 
@@ -119,3 +125,4 @@ if __name__ == "__main__":
         print("Working on " + current_date)
         detect_relate_graph_entities(current_date, current_week)
         current_day += timedelta(1)
+        break

@@ -6,9 +6,9 @@ def article_level_score(all_articles_rel_weights, entity_list, r_type, art_id):
     for entity_couple in single_article_rel_weights:
         if entity_couple in all_articles_rel_weights:
             all_articles_rel_weights[entity_couple][0] += single_article_rel_weights[entity_couple]
-            all_articles_rel_weights[entity_couple][1].append(art_id)
+            all_articles_rel_weights[entity_couple][1][art_id] = []
         else:
-            all_articles_rel_weights[entity_couple] = [single_article_rel_weights[entity_couple], [art_id]]
+            all_articles_rel_weights[entity_couple] = [single_article_rel_weights[entity_couple], {art_id: []}]
 
     return all_articles_rel_weights
 
@@ -22,7 +22,11 @@ def calculate_relations_weights(freqs, rel_type):
     for r_t in rel_type:
         name_list += freqs[r_t]
         value_list += freqs[r_t].values()
-        # we sort the values accordingly the sorted name list and return two sorted tuples
+    # we sort the values accordingly the sorted name list and return two sorted tuples
+    sorted_values = []
+    sorted_names = []
+    if len(name_list) != 0:
+        #  This comprehension crashes if we give empty lists
         sorted_names, sorted_values = zip(*[(name, value) for name, value in sorted(zip(name_list, value_list))])
         sorted_names = list(sorted_names)
         sorted_values = list(sorted_values)
@@ -34,7 +38,7 @@ def calculate_relations_weights(freqs, rel_type):
 
     for out_idx, out_name in enumerate(sorted_names[:-1]):
             for in_idx, in_name in enumerate(sorted_names[out_idx+1:]):
-                weight_dict[out_name + "-" + in_name] = weight_list[out_idx][in_idx]
+                weight_dict[out_name + "**" + in_name] = weight_list[out_idx][in_idx]
 
     return weight_dict
 
@@ -54,9 +58,6 @@ def entity_article_frequency(ent_list):
     entity_frequencies = dict()
 
     for sent_dict in ent_list:
-        # all_persons = all_persons.union(set(sub_list["PERSON"]))
-        # all_locations = all_locations.union(set(sub_list["LOCATION"]))
-        # all_organizations = all_organizations.union(set(sub_list["ORGANIZATION"]))
         for entity in sent_dict["P"]:
             if entity in all_persons:
                 all_persons[entity] += 1
