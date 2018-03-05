@@ -42,7 +42,7 @@ def detect_relate_graph_entities(today, current_week):
         entity_dict = entity_detection.detection(document["text"])
         articles_entity_list.append(entity_dict)
         articles_id_list.append(document["_id"])
-        if count == 1:
+        if count == 20:
             break
         count += 1
 
