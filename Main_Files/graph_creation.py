@@ -15,12 +15,29 @@ def assign_ids(art_ent_list, rel_type):
     return index_dict
 
 
-def create_article_graph(art_rel_weights, ids, r_type, path, day, week):
-    date_dir = path + "Graphs/Article/" + week
+def assign_sentence_ids(sent_rel_weights):
+    index_dict = dict()
+    entry_id = 0
+    for entity_pair in sent_rel_weights:
+        splited_pair = entity_pair.split("**")
+        for entity in splited_pair:
+            if entity not in index_dict:
+                index_dict[entity] = entry_id
+                entry_id += 1
+    return index_dict
+
+
+def check_create_folders(in_path, in_day, in_week, rel_level):
+    date_dir = in_path + "Graphs/" + rel_level + "/" + in_week
     if not os.path.exists(date_dir):
         os.makedirs(date_dir)
-    if not os.path.exists(date_dir + "/" + day):
-        os.makedirs(date_dir + "/" + day)
+    if not os.path.exists(date_dir + "/" + in_day):
+        os.makedirs(date_dir + "/" + in_day)
+    return date_dir
+
+
+def create_graph(sent_rel_weights, ids, r_type, path, day, week, level):
+    date_dir = check_create_folders(path, day, week, level)
 
     # Creating gephi node CSV file
     with open(date_dir + '/' + day + '/politicsNodes' + r_type + '.csv', 'w') as node_file:
@@ -31,9 +48,57 @@ def create_article_graph(art_rel_weights, ids, r_type, path, day, week):
     # Creating gephi edge CSV file
     with open(date_dir + '/' + day + '/politicsEdges' + r_type + '.csv', 'w') as edge_file:
         edge_file.write('Source,Target,Weight,sentence_appearance\n')
-        for rel_weight in art_rel_weights:
+        for rel_weight in sent_rel_weights:
             splited_pair = rel_weight.split("**")
             edge_file.write(str(ids[splited_pair[0]]) + ","
                             + str(ids[splited_pair[1]]) + ","
-                            + str(art_rel_weights[rel_weight][0]) + ","
-                            + "\"" + str(art_rel_weights[rel_weight][1]) + "\"\n")
+                            + str(sent_rel_weights[rel_weight][0]) + ","
+                            + "\"" + str(sent_rel_weights[rel_weight][1]) + "\"\n")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
