@@ -40,7 +40,7 @@ def detect_relate_graph_entities(today, current_week):
         entity_dict = entity_detection.detection(document["text"])
         articles_entity_list.append(entity_dict)
         articles_id_list.append(document["_id"])
-        # if count == 1:
+        # if count == 0:
         #     break
         # count += 1
 
@@ -58,35 +58,37 @@ def detect_relate_graph_entities(today, current_week):
 
     relation_types = ["PLO", "PL", "PO", "LO", "P", "L", "O"]
 
-    # Creating article level graphs
     for rel_type in relation_types:
+        # Creating article level graphs
         articles_rel_weights = dict()
 
-        entry_ids = graph_creation.assign_ids(articles_entity_list, rel_type)
+        art_entry_ids = graph_creation.assign_ids(articles_entity_list, rel_type)
 
         # Calculating the weight for all entities for all articles
         for ent_list, article_id in zip(articles_entity_list, articles_id_list):
             articles_rel_weights = scores.article_level_score(articles_rel_weights, ent_list, rel_type, article_id)
         # Creating gephi CSV files
-        graph_creation.create_graph(articles_rel_weights, entry_ids, rel_type,
-                                    project_path, today, current_week, "Article")
-
-    # Creating sentence level graphs
-    for rel_type in relation_types:
+        graph_creation.create_article_graph(articles_rel_weights, art_entry_ids, rel_type,
+                                            project_path, today, current_week)
+        # ------------------------------
+        # Creating sentence level graphs
         sentences_rel_weights = dict()
 
         # Calculating the weight for all entities for all sentences of all articles
         for ent_list, article_id in zip(articles_entity_list, articles_id_list):
             sentences_rel_weights = sentence_scores.sentence_level_score(sentences_rel_weights, ent_list,
                                                                          rel_type, article_id)
-        entry_ids = graph_creation.assign_sentence_ids(sentences_rel_weights)
+        sent_entry_ids = graph_creation.assign_sentence_ids(sentences_rel_weights)
 
         # Creting gephi CSV file
-        graph_creation.create_graph(sentences_rel_weights, entry_ids, rel_type,
-                                    project_path, today, current_week, "Sentence")
-
-    # Creating article-sentence level graphs
-    # for rel_type in relation_types:
+        graph_creation.create_sentence_graph(sentences_rel_weights, sent_entry_ids, rel_type,
+                                             project_path, today, current_week)
+        # --------------------------------------
+        # Creating article-sentence level graphs
+        merged_rel_weights = scores.merge_scores(articles_rel_weights, sentences_rel_weights)
+        # Creating gephi CSV file
+        graph_creation.create_merged_graph(merged_rel_weights, art_entry_ids, rel_type,
+                                           project_path, today, current_week)
 
 
 

@@ -78,3 +78,15 @@ def entity_article_frequency(ent_list):
     entity_frequencies["O"] = all_organizations
 
     return entity_frequencies
+
+
+def merge_scores(article_weights, sentence_weights):
+    merged_weights = dict()
+    for sent_key in article_weights:
+        if sent_key in sentence_weights:
+            merged_weights[sent_key] = [sentence_weights[sent_key][0] + article_weights[sent_key][0],
+                                        sentence_weights[sent_key][1]]
+        else:
+            merged_weights[sent_key] = [article_weights[sent_key][0], article_weights[sent_key][1]]
+    return merged_weights
+

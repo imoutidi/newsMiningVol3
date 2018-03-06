@@ -27,8 +27,8 @@ def assign_sentence_ids(sent_rel_weights):
     return index_dict
 
 
-def check_create_folders(in_path, in_day, in_week, rel_level):
-    date_dir = in_path + "Graphs/" + rel_level + "/" + in_week
+def check_create_folders(in_path, in_day, in_week, level):
+    date_dir = in_path + "Graphs/" + level + "/" + in_week
     if not os.path.exists(date_dir):
         os.makedirs(date_dir)
     if not os.path.exists(date_dir + "/" + in_day):
@@ -36,8 +36,27 @@ def check_create_folders(in_path, in_day, in_week, rel_level):
     return date_dir
 
 
-def create_graph(sent_rel_weights, ids, r_type, path, day, week, level):
-    date_dir = check_create_folders(path, day, week, level)
+def create_article_graph(art_rel_weights, ids, r_type, path, day, week):
+    date_dir = check_create_folders(path, day, week, "Article")
+    # Creating gephi node CSV file
+    with open(date_dir + '/' + day + '/politicsNodes' + r_type + '.csv', 'w') as node_file:
+        node_file.write('id,label\n')
+        for i_d in ids:
+            node_file.write(str(ids[i_d]) + "," + i_d + "\n")
+
+    # Creating gephi edge CSV file
+    with open(date_dir + '/' + day + '/politicsEdges' + r_type + '.csv', 'w') as edge_file:
+        edge_file.write('Source,Target,Weight,sentence_appearance\n')
+        for rel_weight in art_rel_weights:
+            splited_pair = rel_weight.split("**")
+            edge_file.write(str(ids[splited_pair[0]]) + ","
+                            + str(ids[splited_pair[1]]) + ","
+                            + str(art_rel_weights[rel_weight][0]) + ","
+                            + "\"" + str(art_rel_weights[rel_weight][1]) + "\"\n")
+
+
+def create_sentence_graph(sent_rel_weights, ids, r_type, path, day, week):
+    date_dir = check_create_folders(path, day, week, "Sentence")
 
     # Creating gephi node CSV file
     with open(date_dir + '/' + day + '/politicsNodes' + r_type + '.csv', 'w') as node_file:
@@ -55,6 +74,25 @@ def create_graph(sent_rel_weights, ids, r_type, path, day, week, level):
                             + str(sent_rel_weights[rel_weight][0]) + ","
                             + "\"" + str(sent_rel_weights[rel_weight][1]) + "\"\n")
 
+
+def create_merged_graph(merged_rel_weights, ids, r_type, path, day, week):
+    date_dir = check_create_folders(path, day, week, "Article_Sentence")
+
+    # Creating gephi node CSV file
+    with open(date_dir + '/' + day + '/politicsNodes' + r_type + '.csv', 'w') as node_file:
+        node_file.write('id,label\n')
+        for i_d in ids:
+            node_file.write(str(ids[i_d]) + "," + i_d + "\n")
+
+    # Creating gephi edge CSV file
+    with open(date_dir + '/' + day + '/politicsEdges' + r_type + '.csv', 'w') as edge_file:
+        edge_file.write('Source,Target,Weight,sentence_appearance\n')
+        for rel_weight in merged_rel_weights:
+            splited_pair = rel_weight.split("**")
+            edge_file.write(str(ids[splited_pair[0]]) + ","
+                            + str(ids[splited_pair[1]]) + ","
+                            + str(merged_rel_weights[rel_weight][0]) + ","
+                            + "\"" + str(merged_rel_weights[rel_weight][1]) + "\"\n")
 
 
 
