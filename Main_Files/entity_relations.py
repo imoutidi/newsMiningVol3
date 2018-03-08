@@ -3,16 +3,10 @@ import pymongo
 import pickle
 import os
 from datetime import date, timedelta
-from collections import defaultdict
 from Score_Calculation import scores, sentence_scores
 # -----------------------------------------
 from NER_Tools import entity_detection, entity_cleaning
 from Main_Files import graph_creation
-
-
-# Better than lambda
-def create_nested_dict():
-    return defaultdict(create_nested_dict)
 
 
 def detect_relate_graph_entities(today, current_week):
@@ -40,7 +34,7 @@ def detect_relate_graph_entities(today, current_week):
         entity_dict = entity_detection.detection(document["text"])
         articles_entity_list.append(entity_dict)
         articles_id_list.append(document["_id"])
-        # if count == 0:
+        # if count == 2:
         #     break
         # count += 1
 
@@ -50,11 +44,20 @@ def detect_relate_graph_entities(today, current_week):
     if not os.path.exists(project_path + "Pivot_Files/Article_Entity_Structure/" + current_week):
         os.makedirs(project_path + "Pivot_Files/Article_Entity_Structure/" + current_week)
 
+    if not os.path.exists(project_path + "Pivot_Files/Document_ids/" + current_week):
+        os.makedirs(project_path + "Pivot_Files/Document_ids/" + current_week)
+
     # entity dict list must be saved for future usage (NER classifier takes time)
     save_entity_dict_list = open(project_path + "Pivot_Files/Article_Entity_Structure/" + current_week + "/"
                                  + today + "_DictArticlesList.pickle", "wb")
     pickle.dump(articles_entity_list, save_entity_dict_list)
     save_entity_dict_list.close()
+
+    # saving the document id list
+    save_doc_list = open(project_path + "Pivot_Files/Document_ids/" + current_week + "/"
+                         + today + "_doc_ids.pickle", "wb")
+    pickle.dump(articles_id_list, save_doc_list)
+    save_doc_list.close()
 
     relation_types = ["PLO", "PL", "PO", "LO", "P", "L", "O"]
 
@@ -69,12 +72,17 @@ def detect_relate_graph_entities(today, current_week):
             articles_rel_weights = scores.article_level_score(articles_rel_weights, ent_list, rel_type, article_id)
         # Creating gephi CSV files
         graph_creation.create_article_graph(articles_rel_weights, art_entry_ids, rel_type,
-                                            project_path, today, current_week)
+                                            project_path, today, current_week, "Graphs")
         # ------------------------------
         # Creating sentence level graphs
         sentences_rel_weights = dict()
 
         # Calculating the weight for all entities for all sentences of all articles
+        # In this dictionary we will keep the score regarding
+        # the occurrences of two entities in a sentence and also
+        # the document ID and the index number of the sentence that
+        # this occurrence happened.
+        # The score will be accumulated for each pair.
         for ent_list, article_id in zip(articles_entity_list, articles_id_list):
             sentences_rel_weights = sentence_scores.sentence_level_score(sentences_rel_weights, ent_list,
                                                                          rel_type, article_id)
@@ -82,48 +90,14 @@ def detect_relate_graph_entities(today, current_week):
 
         # Creting gephi CSV file
         graph_creation.create_sentence_graph(sentences_rel_weights, sent_entry_ids, rel_type,
-                                             project_path, today, current_week)
+                                             project_path, today, current_week, "Graphs")
         # --------------------------------------
         # Creating article-sentence level graphs
         merged_rel_weights = scores.merge_scores(articles_rel_weights, sentences_rel_weights)
         # Creating gephi CSV file
         graph_creation.create_merged_graph(merged_rel_weights, art_entry_ids, rel_type,
-                                           project_path, today, current_week)
+                                           project_path, today, current_week, "Graphs")
 
-
-
-
-
-    # # In this dictionary we will keep the score regarding
-    # # the occurrences of two entities in a sentence and also
-    # # the document ID and the index number of the sentence that
-    # # this occurrence happened.
-    # # A score of 2 is accumulated for each pair only once per
-    # # document so if two entities appear more than one sentence
-    # # in the same document only a score of 2 will be added.
-    # sentence_rel_weights = create_nested_dict()
-    # # current_day_articles = db[current_week].find({"date": today}, no_cursor_timeout=True)
-    # # Calculating the scores
-    # for document, entity_list_doc in zip(current_day_articles, article_entity_dict_list):
-    #     sentences = p_sent_tokenizer.sentences_from_text(document["text"])
-    #     sentence_rel_weights = entityScore.sent_level_score(sentence_rel_weights, sentences,
-    #                                                         entity_list_doc, document["_id"])
-    #
-    # total_rel_weights = create_nested_dict()
-    # entityScore.final_score_of_entity_pairs(article_rel_weights,
-    #                                         sentence_rel_weights, total_rel_weights)
-    #
-    # # Creating the Gephi files P stands for Person, L for Location and O for Organization
-    # # so we can change what kind of nodes we can have in our graph.
-    # types = ["PLO", "PL", "PO", "LO", "P", "L", "O"]
-    # for tp in types:
-    #     entityTools.createGraphFiles(total_rel_weights, tp, "Graphs/Article_Sentence",
-    #                                  sentence_rel_weights, current_week, today)
-    #     entityTools.createGraphFiles(article_rel_weights, tp, "Graphs/Article",
-    #                                  sentence_rel_weights, current_week, today)
-    #     entityTools.createSentGraphFiles(sentence_rel_weights, tp, "Graphs/Sentence",
-    #                                      current_week, today)
-    #
     # n_date = date.today()
     # s_date = n_date - timedelta(6)
     # window = 7
@@ -131,15 +105,15 @@ def detect_relate_graph_entities(today, current_week):
 
 
 if __name__ == "__main__":
-    current_day = date(2018, 1, 9)
+    current_day = date(2018, 1, 13)
     current_date = str(current_day.year) + "-" + str(current_day.month) + "-" + \
                    str(current_day.day)
     current_week = str(current_day.isocalendar()[1]) + "-" + str(current_day.isocalendar()[0])
-    while current_day != date(2018, 2, 19):
+    while current_day != date(2018, 1, 15):
         current_date = str(current_day.year) + "-" + str(current_day.month) + "-" + \
                        str(current_day.day)
         current_week = str(current_day.isocalendar()[1]) + "-" + str(current_day.isocalendar()[0])
         print("Working on " + current_date)
         detect_relate_graph_entities(current_date, current_week)
         current_day += timedelta(1)
-        break
+        # break

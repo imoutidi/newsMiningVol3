@@ -27,8 +27,8 @@ def assign_sentence_ids(sent_rel_weights):
     return index_dict
 
 
-def check_create_folders(in_path, in_day, in_week, level):
-    date_dir = in_path + "Graphs/" + level + "/" + in_week
+def check_create_folders(in_path, in_day, in_week, level, folder):
+    date_dir = in_path + folder + "/" + level + "/" + in_week
     if not os.path.exists(date_dir):
         os.makedirs(date_dir)
     if not os.path.exists(date_dir + "/" + in_day):
@@ -36,8 +36,8 @@ def check_create_folders(in_path, in_day, in_week, level):
     return date_dir
 
 
-def create_article_graph(art_rel_weights, ids, r_type, path, day, week):
-    date_dir = check_create_folders(path, day, week, "Article")
+def create_article_graph(art_rel_weights, ids, r_type, path, day, week, folder_name):
+    date_dir = check_create_folders(path, day, week, "Article", folder_name)
     # Creating gephi node CSV file
     with open(date_dir + '/' + day + '/politicsNodes' + r_type + '.csv', 'w') as node_file:
         node_file.write('id,label\n')
@@ -55,8 +55,8 @@ def create_article_graph(art_rel_weights, ids, r_type, path, day, week):
                             + "\"" + str(art_rel_weights[rel_weight][1]) + "\"\n")
 
 
-def create_sentence_graph(sent_rel_weights, ids, r_type, path, day, week):
-    date_dir = check_create_folders(path, day, week, "Sentence")
+def create_sentence_graph(sent_rel_weights, ids, r_type, path, day, week, folder_name):
+    date_dir = check_create_folders(path, day, week, "Sentence", folder_name)
 
     # Creating gephi node CSV file
     with open(date_dir + '/' + day + '/politicsNodes' + r_type + '.csv', 'w') as node_file:
@@ -75,8 +75,8 @@ def create_sentence_graph(sent_rel_weights, ids, r_type, path, day, week):
                             + "\"" + str(sent_rel_weights[rel_weight][1]) + "\"\n")
 
 
-def create_merged_graph(merged_rel_weights, ids, r_type, path, day, week):
-    date_dir = check_create_folders(path, day, week, "Article_Sentence")
+def create_merged_graph(merged_rel_weights, ids, r_type, path, day, week, folder_name):
+    date_dir = check_create_folders(path, day, week, "Article_Sentence", folder_name)
 
     # Creating gephi node CSV file
     with open(date_dir + '/' + day + '/politicsNodes' + r_type + '.csv', 'w') as node_file:
