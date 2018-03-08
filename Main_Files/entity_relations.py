@@ -105,11 +105,12 @@ def detect_relate_graph_entities(today, current_week):
 
 
 if __name__ == "__main__":
-    current_day = date(2018, 1, 13)
+    # TODO last day that did not created a graph for -> 2018, 3, 7
+    current_day = date(2018, 3, 7)
     current_date = str(current_day.year) + "-" + str(current_day.month) + "-" + \
                    str(current_day.day)
     current_week = str(current_day.isocalendar()[1]) + "-" + str(current_day.isocalendar()[0])
-    while current_day != date(2018, 1, 15):
+    while current_day != date(2018, 3, 8):
         current_date = str(current_day.year) + "-" + str(current_day.month) + "-" + \
                        str(current_day.day)
         current_week = str(current_day.isocalendar()[1]) + "-" + str(current_day.isocalendar()[0])

@@ -108,8 +108,6 @@ def graph_in_date_range(start_date, end_date, window_size):
         # Creating gephi CSV file
         graph_creation.create_merged_graph(merged_rel_weights, art_entry_ids, rel_type,
                                            project_path, today, current_week, "Graphs_Window")
-    pass
-
 
 
 # Calling the graph_in_date_range() function
